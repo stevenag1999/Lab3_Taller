@@ -19,8 +19,7 @@ import random
 #-------------------------------------------------------
 # Función para simular la adquisición de datos
 def adquirir_datos():
-    # adquisición de datos, reemplaza esto con tu lógica real
-    dato = random.uniform(0, 5)  # Simula un dato en un rango de 0 a 5 V
+    dato = random.uniform(0, 5) 
     return dato
 #-------------------------------------------------------
 
@@ -34,39 +33,36 @@ def graficar_datos():
     escala2 = combo_escalas2.get()
     print(mag_fis, escala, mag_fis2, escala2)
 
-    # Borramos cualquier gráfica previa
+    # Borrar gráfica previa
     ax.clear()
     
-    # Verificamos si se debe graficar el Canal 1
+    # Verificar si se debe graficar el Canal 1
     if activar_canal1.get():
-        # Simulamos la adquisición de datos para Canal 1 (reemplaza con tu lógica real)
+        # Adquisición de datos para Canal 1
         datos_canal1.append(adquirir_datos())
         
-        # Limitamos la longitud de los datos para mantener la gráfica fija en el tiempo
+        # Gráfica fija en el tiempo
         if len(datos_canal1) > max_datos:
             datos_canal1.pop(0)
         
-        # Graficamos los datos del Canal 1
+        # Graficar datos del Canal 1
         ax.plot(datos_canal1, label="Canal 1", marker='o', linestyle='-', color='b')
-
-        # Configuramos la leyenda de la gráfica
         ax.legend()
     
-    # Verificamos si se debe graficar el Canal 2
+    # Verificar si se debe graficar el Canal 2
     if activar_canal2.get():
-        # Simulamos la adquisición de datos para Canal 2 (reemplaza con tu lógica real)
+        # Adquisición de datos para Canal 2
         datos_canal2.append(adquirir_datos())
         
-        # Limitamos la longitud de los datos para mantener la gráfica fija en el tiempo
+        # Gráfica fija en el tiempo
         if len(datos_canal2) > max_datos:
             datos_canal2.pop(0)
         
-        # Graficamos los datos del Canal 2
+        # Graficar datos del Canal 2
         ax.plot(datos_canal2, label="Canal 2", marker='o', linestyle='-', color='r')
-
-        # Configuramos la leyenda de la gráfica
         ax.legend()
 
+    # Acción para borrar las gráficas cuando los canales estén desactivados
     if not(activar_canal2.get()) and not(activar_canal1.get()):
         print("C A")
         ax.clear()
@@ -74,19 +70,20 @@ def graficar_datos():
         if contador == 2:
             return
     
-    # Configuramos etiquetas y título
+    # etiquetas
     ax.set_xlabel('Muestras')
     ax.set_ylabel(mag_fis)
     
-    # Actualizamos el canvas
+    # Actualización del canvas
     canvas.draw()
 
+    # Intervalo de graficación
     root.after(100, graficar_datos)
 
 #-------------------------------------------------------
 
 #-------------------------------------------------------
-# Función para actualizar la gráfica en tiempo real
+# Función para obtener los datos de la sesión
 def almacenar_datos():
     # Datos de la sesion
     autor = autor_e.get()
@@ -106,7 +103,7 @@ def almacenar_datos():
 ##########################################
 #-------------------------------------------------------
 # Configuración inicial
-datos_canal1 = []  # Almacenará los datos adquiridos
+datos_canal1 = []  # datos adquiridos canal 1
 datos_canal2 = []
 max_datos = 50  # Número máximo de puntos en la gráfica
 autor = ""
@@ -236,7 +233,7 @@ combo_magnitud.set("Seleccionar")
 #-------------------------------------------------------
 
 #-------------------------------------------------------
-# Botón para seleccionar parámetros (valores específicos se pueden agregar después)
+# Botón para seleccionar parámetros (agregar valores específicos  después)
 lbl_escalas = ttk.Label(frame, text="Escala (Canal 1)")
 lbl_escalas.grid(row=4, column=0, padx=5, pady=20)
 
@@ -258,7 +255,7 @@ combo_magnitud2.set("Seleccionar")
 #-------------------------------------------------------
 
 #-------------------------------------------------------
-# Botón para seleccionar parámetros (valores específicos se pueden agregar después)
+# Botón para seleccionar parámetros (agregar valores específicos después)
 lbl_escalas2 = ttk.Label(frame, text="Escala (Canal 2)")
 lbl_escalas2.grid(row=4, column=2, padx=5, pady=20)
 
