@@ -8,7 +8,26 @@ from tkinter import ttk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import random
+import serial
+#import time
+#from matplotlib.animation import FuncAnimation
 #-------------------------------------------------------
+
+
+
+############################
+### COMUNICACIÓN SERIAL ###
+############################
+#-------------------------------------------------------
+# Configura el puerto serial de Arduino
+arduino = serial.Serial('COM6', 115200)
+
+#Resetear arduino
+arduino.setDTR(False)
+arduino.flushInput()
+arduino.setDTR(True)
+#-------------------------------------------------------
+
 
 
 
@@ -19,31 +38,43 @@ import random
 #-------------------------------------------------------
 # Función para simular la adquisición de datos
 def adquirir_datos():
-    dato = random.uniform(0, 5) 
-    return dato
+    try:
+        #dato = random.uniform(0, 5)
+        dato = float(arduino.readline().decode().strip()) #.strip()
+        print("yes")
+        print(dato)
+        return dato
+    except:
+        print("E1")
 #-------------------------------------------------------
 
 #-------------------------------------------------------
 # Función para actualizar la gráfica en tiempo real
 def graficar_datos():
     global contador
-    mag_fis = combo_magnitud.get()
-    escala = combo_escalas.get()
-    mag_fis2 = combo_magnitud2.get()
-    escala2 = combo_escalas2.get()
-    print(mag_fis, escala, mag_fis2, escala2)
+    #mag_fis = combo_magnitud.get()
+    #escala = combo_escalas.get()
+    #mag_fis2 = combo_magnitud2.get()
+    #escala2 = combo_escalas2.get()
+    #print(mag_fis, escala, mag_fis2, escala2)
 
     # Borrar gráfica previa
     ax.clear()
     
     # Verificar si se debe graficar el Canal 1
     if activar_canal1.get():
-        # Adquisición de datos para Canal 1
-        datos_canal1.append(adquirir_datos())
+
+        arduino.flushInput()
+        for i in range(max_muestras):
+            # Adquisición de datos para Canal 1
+            datos_canal1.append(adquirir_datos())
         
         # Gráfica fija en el tiempo
-        if len(datos_canal1) > max_datos:
-            datos_canal1.pop(0)
+        print("a ver")
+        if len(datos_canal1) > max_muestras:
+            for k in range(max_muestras):
+                datos_canal1.pop(k)
+            print("parece que sí")
         
         # Graficar datos del Canal 1
         ax.plot(datos_canal1, label="Canal 1", marker='o', linestyle='-', color='b')
@@ -67,7 +98,9 @@ def graficar_datos():
         print("C A")
         ax.clear()
         contador += 1
+        print(contador)
         if contador == 2:
+            contador = 0
             return
     
     # etiquetas
@@ -78,6 +111,7 @@ def graficar_datos():
     canvas.draw()
 
     # Intervalo de graficación
+    #ani = FuncAnimation(fig, graficar_datos, interval=1000)
     root.after(100, graficar_datos)
 
 #-------------------------------------------------------
@@ -105,7 +139,7 @@ def almacenar_datos():
 # Configuración inicial
 datos_canal1 = []  # datos adquiridos canal 1
 datos_canal2 = []
-max_datos = 50  # Número máximo de puntos en la gráfica
+max_datos = 15  # Número máximo de puntos en la gráfica
 autor = ""
 fecha = ""
 mag_fis = ""
@@ -113,6 +147,8 @@ escala = ""
 mag_fis2 = ""
 escala2 = ""
 contador = 0
+max_muestras = 1000
+datos_muestras = []
 #-------------------------------------------------------
 
 
@@ -233,7 +269,7 @@ combo_magnitud.set("Seleccionar")
 #-------------------------------------------------------
 
 #-------------------------------------------------------
-# Botón para seleccionar parámetros (agregar valores específicos  después)
+# Botón para seleccionar parámetros (valores específicos se pueden agregar después)
 lbl_escalas = ttk.Label(frame, text="Escala (Canal 1)")
 lbl_escalas.grid(row=4, column=0, padx=5, pady=20)
 
@@ -255,7 +291,7 @@ combo_magnitud2.set("Seleccionar")
 #-------------------------------------------------------
 
 #-------------------------------------------------------
-# Botón para seleccionar parámetros (agregar valores específicos después)
+# Botón para seleccionar parámetros (valores específicos se pueden agregar después)
 lbl_escalas2 = ttk.Label(frame, text="Escala (Canal 2)")
 lbl_escalas2.grid(row=4, column=2, padx=5, pady=20)
 
@@ -264,6 +300,7 @@ combo_escalas2 = ttk.Combobox(frame, values=escalas)
 combo_escalas2.grid(row=4, column=3, padx=5, pady=20)
 combo_escalas2.set("Seleccionar")
 #-------------------------------------------------------
+
 
 
 # Arrancar la aplicación
