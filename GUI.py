@@ -40,22 +40,33 @@ arduino.setDTR(True)
 # Función para simular la adquisición de datos
 def adquirir_datos(canalP):
         global datos_canal1, datos_canal2
-        if canalP == 1:         #Adquisión de canatos solo para el canal 1
+        
+        if canalP == 1:         #Adquisión de datos solo para el canal 1
+                try:
+                        arduino.flushInput()    #Limpiar algún residuo que haya
+                        for i in range(max_muestras):   
+                            dato = float(arduino.readline().decode().strip())   #Con 'decode' lo hago string y con 'strip' le quito el '\r'
+                            datos_canal1.append(dato*5/255)     #Decodificar el dato
+                        return
+                except:
+                        print("E1")
+
+        if canalP == 2:         #Adquisión de datos solo para el canal 2
                 try:
                         arduino.flushInput()    #Limpiar algún residuo que haya
                         for i in range(max_muestras):
                             dato = float(arduino.readline().decode().strip())
-                            datos_canal1.append(dato*5/255)
+                            datos_canal2.append(dato*5/255)
                         return
                 except:
-                        print("E1")
+                        print("E2")
 #-------------------------------------------------------
 
 
 #-------------------------------------------------------
 # Función para actualizar la gráfica en tiempo real
 def graficar_datos():
-    global contador, c, datos_canal1, datos_canal2
+    global contador, datos_canal1, datos_canal2
 
     # Borrar gráfica previa
     ax.clear()
@@ -68,7 +79,7 @@ def graficar_datos():
         ax.plot(datos_canal1, label="Canal 1", linestyle='-', color='b')    #Graficar los datos del canal 1
         ax.legend()
 
-    '''
+
     # Verificar si se debe graficar el Canal 2
     if ech2:
         adquirir_datos(2)       #Obtener Datos para el Canal 2
@@ -76,10 +87,10 @@ def graficar_datos():
             datos_canal2 = datos_canal2[-max_muestras:]
         ax.plot(datos_canal2, label="Canal 2", linestyle='-', color='r') # Graficar datos del Canal 2
         ax.legend()
-     '''
+        
 
     # Acción para borrar las gráficas cuando los canales estén desactivados
-    if not(activar_canal2.get()) and not(activar_canal1.get()):
+    if not(ech1) and not(ech2):
         print("Limpiando Gráficas... Por favor, espere un momento.")
         ax.clear()
         contador += 1
