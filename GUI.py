@@ -49,7 +49,8 @@ def adquirir_datos(canalP):
                             datos_canal1.append(dato*5/255)     #Decodificar el dato
                         return
                 except:
-                        print("E1")
+                        #print("E1:1")
+                        cp = 3
 
         if canalP == 2:         #Adquisión de datos solo para el canal 2
                 try:
@@ -59,7 +60,38 @@ def adquirir_datos(canalP):
                             datos_canal2.append(dato*5/255)
                         return
                 except:
-                        print("E2")
+                        #print("E2:2")
+                        cp = 4
+
+        if canalP == 3:         #Adquisión de datos simultánea
+                try:
+                        arduino.flushInput()    #Limpiar algún residuo que haya
+                        for i in range(max_muestras):
+                            dato = float(arduino.readline().decode().strip())   #Adquirir datos para el canal 1
+                            datos_canal1.append(dato*5/255)
+                        arduino.flushOutput()
+                        comando = 0b11111111
+                        arduino.write(bytes([comando])) #Informarle al arduino que el canal 1 está listo
+                except:
+                        #print("E1:3")
+                        cp = 2
+
+                time.sleep(0.5)
+
+                try:
+                        arduino.flushInput()    #Limpiar algún residuo que haya
+                        for i in range(max_muestras):
+                            dato = float(arduino.readline().decode().strip())   #Adquirir datos para el canal 2
+                            datos_canal2.append(dato*5/255)
+                        arduino.flushOutput()
+                        comando = 0b11111110
+                        arduino.write(bytes([comando])) #Informarle al arduino que el canal 2 está listo
+                        return
+                except:
+                        #print("E2:3")
+                        cp = 1
+
+                time.sleep(0.5)
 #-------------------------------------------------------
 
 
@@ -72,7 +104,7 @@ def graficar_datos():
     ax.clear()
     
     # Verificar si se debe graficar el Canal 1
-    if ech1:
+    if ech1 == True and ech2 == False:
         adquirir_datos(1)       #Obtener Datos para el Canal 1
         if len(datos_canal1) > max_muestras:            # Gráfica fija en el tiempo
             datos_canal1 = datos_canal1[-max_muestras:]
@@ -81,8 +113,19 @@ def graficar_datos():
 
 
     # Verificar si se debe graficar el Canal 2
-    if ech2:
+    if ech2 == True and ech1 == False:
         adquirir_datos(2)       #Obtener Datos para el Canal 2
+        if len(datos_canal2) > max_muestras:       # Gráfica fija en el tiempo
+            datos_canal2 = datos_canal2[-max_muestras:]
+        ax.plot(datos_canal2, label="Canal 2", linestyle='-', color='r') # Graficar datos del Canal 2
+        ax.legend()
+
+    if ech1 == True and ech2 == True:
+        adquirir_datos(3)       #Obtener Datos para los canales 1 y 2
+        if len(datos_canal1) > max_muestras:            # Gráfica fija en el tiempo
+            datos_canal1 = datos_canal1[-max_muestras:]
+        ax.plot(datos_canal1, label="Canal 1", linestyle='-', color='b')    #Graficar los datos del canal 1
+        ax.legend()
         if len(datos_canal2) > max_muestras:       # Gráfica fija en el tiempo
             datos_canal2 = datos_canal2[-max_muestras:]
         ax.plot(datos_canal2, label="Canal 2", linestyle='-', color='r') # Graficar datos del Canal 2
