@@ -4,13 +4,11 @@
 #-------------------------------------------------------
 import tkinter as tk
 from tkinter import ttk
-#from tkinter import *
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import random
 import serial
 import time
-#from matplotlib.animation import FuncAnimation
 #-------------------------------------------------------
 
 
@@ -49,7 +47,6 @@ def adquirir_datos(canalP):
                             datos_canal1.append(dato*5/255)     #Decodificar el dato
                         return
                 except:
-                        #print("E1:1")
                         cp = 3
 
         if canalP == 2:         #Adquisión de datos solo para el canal 2
@@ -60,7 +57,6 @@ def adquirir_datos(canalP):
                             datos_canal2.append(dato*5/255)
                         return
                 except:
-                        #print("E2:2")
                         cp = 4
 
         if canalP == 3:         #Adquisión de datos simultánea
@@ -73,7 +69,6 @@ def adquirir_datos(canalP):
                         comando = 0b11111111
                         arduino.write(bytes([comando])) #Informarle al arduino que el canal 1 está listo
                 except:
-                        #print("E1:3")
                         cp = 2
 
                 time.sleep(0.5)
@@ -88,7 +83,6 @@ def adquirir_datos(canalP):
                         arduino.write(bytes([comando])) #Informarle al arduino que el canal 2 está listo
                         return
                 except:
-                        #print("E2:3")
                         cp = 1
 
                 time.sleep(0.5)
