@@ -14,11 +14,12 @@ import time
 
 
 
+
 ############################
 ### COMUNICACIÓN SERIAL ###
 ############################
 #-------------------------------------------------------
-# Configura el puerto serial de Arduino
+# Iniciar puerto serial de Arduino
 arduino = serial.Serial('COM6', 115200)
 
 #Resetear arduino
@@ -40,54 +41,71 @@ def adquirir_datos(canalP):
         global datos_canal1, datos_canal2
         
         if canalP == 1:         #Adquisión de datos solo para el canal 1
-                try:
-                        arduino.flushInput()    #Limpiar algún residuo que haya
-                        for i in range(max_muestras):   
-                            dato = float(arduino.readline().decode().strip())   #Con 'decode' lo hago string y con 'strip' le quito el '\r'
-                            datos_canal1.append(dato*5/255)     #Decodificar el dato
-                        return
-                except:
-                        cp = 3
+            datos1 = []
+            arduino.flushInput()    #Limpiar algún residuo que haya
+            while True:
+                if len(datos1) == max_muestras:         #Cuando tenga la cantidad de muestras que quiero, corto
+                    datos_canal1 = datos1
+                    break
+                else:
+                    try:
+                            dato = float(arduino.readline().decode().strip())   #Adquirir datos para el canal 1
+                            datos1.append(dato*5/255)
+                    except:
+                            cp = 2
+
 
         if canalP == 2:         #Adquisión de datos solo para el canal 2
-                try:
-                        arduino.flushInput()    #Limpiar algún residuo que haya
-                        for i in range(max_muestras):
-                            dato = float(arduino.readline().decode().strip())
-                            datos_canal2.append(dato*5/255)
-                        return
-                except:
-                        cp = 4
+            datos2 = []
+            arduino.flushInput()    #Limpiar algún residuo que haya
+            while True:
+                if len(datos2) == max_muestras: #Cortar cuando se tengan las muestras que se quiere
+                    datos_canal2 = datos2
+                    break
+                else:
+                    try:
+                            dato = float(arduino.readline().decode().strip())   #Adquirir datos para el canal 2
+                            datos2.append(dato*5/255)   #decodificar valor
+                    except:
+                            cp = 2
 
         if canalP == 3:         #Adquisión de datos simultánea
-                try:
-                        arduino.flushInput()    #Limpiar algún residuo que haya
-                        for i in range(max_muestras):
+            datos1 = []
+            arduino.flushInput()    #Limpiar algún residuo que haya
+            while True:
+                if len(datos1) == max_muestras:
+                    datos_canal1 = datos1
+                    arduino.flushOutput()
+                    comando = 0b11111111
+                    arduino.write(bytes([comando])) #Informarle al arduino que el canal 1 está listo
+                    break
+                else:
+                    try:
                             dato = float(arduino.readline().decode().strip())   #Adquirir datos para el canal 1
-                            datos_canal1.append(dato*5/255)
-                        arduino.flushOutput()
-                        comando = 0b11111111
-                        arduino.write(bytes([comando])) #Informarle al arduino que el canal 1 está listo
-                except:
-                        cp = 2
+                            datos1.append(dato*5/255)
+                    except:
+                            cp = 2
 
-                time.sleep(0.5)
+            time.sleep(0.35)    #retardo para no mezclar datos
 
-                try:
-                        arduino.flushInput()    #Limpiar algún residuo que haya
-                        for i in range(max_muestras):
+            datos2 = []
+            arduino.flushInput()    #Limpiar algún residuo que haya
+            while True:
+                if len(datos2) == max_muestras:
+                    datos_canal2 = datos2
+                    arduino.flushOutput()
+                    comando = 0b11111110
+                    arduino.write(bytes([comando])) #Informarle al arduino que el canal 2 está listo
+                    break
+                else:
+                    try:
                             dato = float(arduino.readline().decode().strip())   #Adquirir datos para el canal 2
-                            datos_canal2.append(dato*5/255)
-                        arduino.flushOutput()
-                        comando = 0b11111110
-                        arduino.write(bytes([comando])) #Informarle al arduino que el canal 2 está listo
-                        return
-                except:
-                        cp = 1
+                            datos2.append(dato*5/255)
+                    except:
+                            cp = 2
 
-                time.sleep(0.5)
+            time.sleep(0.2)
 #-------------------------------------------------------
-
 
 #-------------------------------------------------------
 # Función para actualizar la gráfica en tiempo real
@@ -124,7 +142,6 @@ def graficar_datos():
             datos_canal2 = datos_canal2[-max_muestras:]
         ax.plot(datos_canal2, label="Canal 2", linestyle='-', color='r') # Graficar datos del Canal 2
         ax.legend()
-        
 
     # Acción para borrar las gráficas cuando los canales estén desactivados
     if not(ech1) and not(ech2):
@@ -138,29 +155,114 @@ def graficar_datos():
     # etiquetas
     ax.set_xlabel('Muestras')
     ax.set_ylabel(mag_fis)
-    #ax.set_ylim(0, 5)  # Establecer límites en el eje Y de 0 a 5
     
     # Actualización del canvas
     canvas.draw()
 
     # Intervalo de graficación
-    root.after(100, graficar_datos)
-
+    root.after(50, graficar_datos)
 #-------------------------------------------------------
 
 #-------------------------------------------------------
-# Función para obtener los datos de la sesión
+# Función para almacenar  los datos de la sesión
 def almacenar_datos():
-        #---> Datos
+        global ID, autor, fecha, mag_fis, escala, mag_fis2, escala2, ech1, ech2, datos_canal1, datos_canal2
+
+        ID += 1 
         autor = autor_e.get()
         fecha = fecha_e.get()
-        mag_fis = combo_magnitud.get()      #Magnitud física ch1
-        escala = combo_escalas.get()                #Escala ch1
-        mag_fis2 = combo_magnitud2.get()
+        mag_fis = mag_fis_e.get()
+        escala = combo_escalas.get()
+        mag_fis2 = mag_fis2_e.get()
         escala2 = combo_escalas2.get()
-        ech1 = activar_canal1.get()     #Canal 1 activado?
-        ech2 = activar_canal1.get()
-        print(autor, fecha, mag_fis, escala)
+        ech1 = activar_canal1.get()
+        if ech1:
+                c1 = "1"
+                datos1 = datos_canal1
+        else:
+                c1 = "0"
+                datos1 = [0]*max_muestras
+        ech2 = activar_canal2.get()
+        if ech2:
+                c2 = "1"
+                datos2 = datos_canal2
+        else:
+                c2 = "0"
+                datos2 = [0]*max_muestras
+
+        # Abrir  archivo en modo 'append'
+        with open('datos.txt', 'a') as file:
+                # Escribir información
+                file.write("\n"+str(ID)+","+autor+","+fecha+","+mag_fis+","+str(escala)+","+mag_fis2+","+str(escala2)+","+"1"+","+"1"+",")
+                for i in range(len(datos1)):
+                    file.write(str(datos1[i]) + ",")
+                for i in range(len(datos2)):
+                    file.write(str(datos2[i]) + ",")
+
+        # mostrar mensaje de éxito 
+        print("\nDatos almacenados exitosamente.")
+        print("\nSe almacena: ")
+        print(ID, autor, fecha, mag_fis, escala, mag_fis2, escala2, c1, c2)
+        print("")
+        print("D1: ", datos1)
+        print("")
+        print("D2: ", datos2)
+
+        # Limpiar listas auxiliares de datos
+        datos1 = []
+        datos2 = []
+
+        file.close()
+#-------------------------------------------------------
+
+#-------------------------------------------------------
+def cargar_datos():
+    try:
+        with open('datos.txt', 'r') as file:
+                
+            for line in file:
+
+                for i in range(2):
+                        ax.clear()
+                
+                columns = line.strip().split(',')       # Separar los datos en las columnas
+
+                if len(columns) < 10:
+                    print("La línea no contiene suficientes elementos:", line)
+                    continue
+
+                ID, autor, fecha, mag_fis, escala, mag_fis2, escala2, c1, c2, *datos = columns
+
+                # Imprimir datos guardadosdos
+                print("ID:", ID)
+                print("Autor:", autor)
+                print("Fecha:", fecha)
+                print("Magnitud Física 1:", mag_fis)
+                print("Escala 1:", escala)
+                print("Magnitud Física 2:", mag_fis2)
+                print("Escala 2:", escala2)
+                print("Canal 1:", c1)
+                print("Canal 2:", c2)
+
+                # Convertir las cadenas de datos en listas de números
+                datos1 = [float(value) if value else 0.0 for value in datos[:max_muestras]]
+                datos2 = [float(value) if value else 0.0 for value in datos[max_muestras:]]
+
+                print("Datos Canal 1: ", datos1)
+                print("Datos Canal 2: ", datos2)
+
+                # graficar datos
+                if c1 == '1':
+                    ax.plot(datos1, label="Canal 1", linestyle=':', color='b')
+                if c2 == '1':
+                    ax.plot(datos2, label="Canal 2", linestyle=':', color='r')
+                ax.legend()
+                ax.set_xlabel('Muestras')
+                ax.set_ylabel(mag_fis)
+                canvas.draw()
+
+    except FileNotFoundError:
+        print("El archivo de datos no existe.")
 #-------------------------------------------------------
 
 #-------------------------------------------------------
@@ -231,12 +333,15 @@ def actualizar_informacion():
 
 
 
+
+
 ##########################################
 ### CONFI INICIAL Y VARIABLES AUXILIARES ###
 ##########################################
 #-------------------------------------------------------
 # Configuración inicial
 #comando = 0b00000000    #(bit0:ch1), (bit1:ch2), (bits[2:4]:escala), (bits[5:7]:escala2)
+ID = 0  # id grabaciones de datos
 datos_canal1 = []  # datos canal 1
 datos_canal2 = []
 ech1 = False    #Activar canal 1?
@@ -248,10 +353,10 @@ escala = ""
 mag_fis2 = ""
 escala2 = ""
 contador = 0
-max_muestras = 50
-datos_muestras = []
+max_muestras = 100
 cp = 0     #Contador de prueba
 #-------------------------------------------------------
+
 
 
 
@@ -284,6 +389,8 @@ ax.set_title('Visualización en Tiempo Real')
 
 
 
+
+
 ##########################
 ### DATOS DE LA SESIÓN ###
 ##########################
@@ -302,6 +409,8 @@ fecha_l.grid(row=1, column=2, padx=5, pady=20)
 fecha_e = ttk.Entry(frame, width=20)
 fecha_e.grid(row=1, column=3, padx=5, pady=20)
 #-------------------------------------------------------
+
+
 
 
 
@@ -328,10 +437,18 @@ btn_almacenar_datos.grid(row=0, column=2, padx=5, pady=20)
 #-------------------------------------------------------
 
 #-------------------------------------------------------
+# Botón para cargar y graficar datos
+btn_cargar_datos = ttk.Button(frame, text="Cargar Datos", command=cargar_datos, width=20)
+btn_cargar_datos.grid(row=0, column=3, padx=5, pady=20)
+#-------------------------------------------------------
+
+#-------------------------------------------------------
 # Botón para actualizar datos
 btn_almacenar_datos = ttk.Button(frame, text="Actualizar Datos", command=actualizar_informacion, width=20)
 btn_almacenar_datos.grid(row=5, column=3, padx=5, pady=20)
 #-------------------------------------------------------
+
+
 
 
 
@@ -363,6 +480,8 @@ chk_graf_canal2.grid(row=2, column=2, padx=5, pady=20)
 
 
 
+
+
 #############################
 ### MAGNITUDES Y ESCALAS ###
 #############################
@@ -371,14 +490,12 @@ chk_graf_canal2.grid(row=2, column=2, padx=5, pady=20)
 lbl_magnitud = ttk.Label(frame, text="Magnitud Física (Canal 1)")
 lbl_magnitud.grid(row=3, column=0, padx=5, pady=20)
 
-magnitudes = ["Magnitud 1", "Magnitud 2", "Magnitud 3", "Magnitud 4", "Magnitud 5", "Magnitud 6"]
-combo_magnitud = ttk.Combobox(frame, values=magnitudes)
-combo_magnitud.grid(row=3, column=1, padx=5, pady=20)
-combo_magnitud.set("Seleccionar")
+mag_fis_e = ttk.Entry(frame, width=20)
+mag_fis_e.grid(row=3, column=1, padx=5, pady=20)
 #-------------------------------------------------------
 
 #-------------------------------------------------------
-# Botón para seleccionar parámetros (valores específicos se pueden agregar después)
+# Escala 1
 lbl_escalas = ttk.Label(frame, text="Escala (Canal 1)")
 lbl_escalas.grid(row=4, column=0, padx=5, pady=20)
 
@@ -389,18 +506,16 @@ combo_escalas.set("Seleccionar")
 #-------------------------------------------------------
 
 #-------------------------------------------------------
-# Botón para seleccionar la magnitud física
+# Magnitud Física 2
 lbl_magnitud2 = ttk.Label(frame, text="Magnitud Física (Canal 2)")
 lbl_magnitud2.grid(row=3, column=2, padx=5, pady=20)
 
-magnitudes2 = ["Magnitud 1", "Magnitud 2", "Magnitud 3", "Magnitud 4", "Magnitud 5", "Magnitud 6"]
-combo_magnitud2 = ttk.Combobox(frame, values=magnitudes)
-combo_magnitud2.grid(row=3, column=3, padx=5, pady=20)
-combo_magnitud2.set("Seleccionar")
+mag_fis2_e = ttk.Entry(frame, width=20)
+mag_fis2_e.grid(row=3, column=3, padx=5, pady=20)
 #-------------------------------------------------------
 
 #-------------------------------------------------------
-# Botón para seleccionar parámetros (valores específicos se pueden agregar después)
+# Escala 2
 lbl_escalas2 = ttk.Label(frame, text="Escala (Canal 2)")
 lbl_escalas2.grid(row=4, column=2, padx=5, pady=20)
 
@@ -409,6 +524,7 @@ combo_escalas2 = ttk.Combobox(frame, values=escalas)
 combo_escalas2.grid(row=4, column=3, padx=5, pady=20)
 combo_escalas2.set("Seleccionar")
 #-------------------------------------------------------
+
 
 
 
