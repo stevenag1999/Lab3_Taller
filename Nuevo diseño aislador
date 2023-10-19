@@ -1,0 +1,35 @@
+# **Circuito de Howland Current Pump para Obtener una Relación Lineal entre Voltaje de Entrada y Corriente de Salida**
+
+El circuito de Howland Current Pump es una configuración ampliamente utilizada para lograr una relación lineal entre el voltaje de entrada (Vin) y la corriente de salida (Iout). Su aplicación principal es la generación de una corriente de salida proporcional a una tensión de entrada en un rango específico.
+
+El circuito de Howland Current Pump consta de cuatro resistencias y un amplificador operacional. Las resistencias clave en este circuito son la resistencia de entrada (Rin), la resistencia de referencia (Rref), la resistencia de realimentación (Rfb) y la resistencia de carga (Rc). Esta última es esencial para obtener la relación lineal entre Vin e Iout.
+
+El funcionamiento del circuito se basa en la relación entre estas resistencias y la configuración del amplificador operacional. A continuación, se presentan algunas de las ecuaciones clave que definen su funcionamiento:
+
+1. **Relación de la corriente de salida en función de Vin y Rin:**
+
+\[
+Iout = \frac{Vin}{Rin}
+\]
+
+2. **Relación de la corriente de salida en función de Vref y Rfb:**
+
+\[
+Iout = \frac{Vref}{Rfb}
+\]
+
+3. **Relación de la corriente de salida en función de la tensión de referencia (Vref) y la tensión de entrada (Vin) con énfasis en la resistencia de carga (Rc):**
+
+\[
+Iout = \frac{Vref}{Vin} \cdot \frac{Rc}{Rin + Rref}
+\]
+
+Donde:
+- \(Iout\) es la corriente de salida.
+- \(Vin\) es el voltaje de entrada.
+- \(Rin\) es la resistencia de entrada.
+- \(Rref\) es la resistencia de referencia.
+- \(Rfb\) es la resistencia de realimentación.
+- \(Vref\) es la tensión de referencia.
+- \(Rc\) es la resistencia de carga.
+
